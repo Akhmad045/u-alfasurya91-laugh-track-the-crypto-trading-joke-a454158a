@@ -56,6 +56,14 @@ def write_entry(path):
         os.makedirs(directory, exist_ok=True)
     with open(path, "w", encoding="utf-8", newline="\n") as handle:
         handle.write(ENTRY)
+    # Read it back: a write that silently truncates or mangles the line
+    # must fail loudly here, not pass the gate check on a stale file.
+    with open(path, "r", encoding="utf-8", newline="") as handle:
+        written = handle.read()
+    if written != ENTRY:
+        print("gate failure: wrote %r, read back %r"
+              % (ENTRY, written), file=sys.stderr)
+        return 1
     print("wrote %d characters (%d bytes) to %s"
           % (len(ENTRY), len(ENTRY.encode("utf-8")), path))
     return 0
